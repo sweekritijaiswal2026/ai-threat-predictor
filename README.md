@@ -7,19 +7,6 @@ Reaching a 40% completion milestone—representing a fully functional vertical s
 
 ## System Architecture & Workflow
 
-```text
-┌─────────────────────────┐       HTTP POST /predict       ┌─────────────────────────┐
-│  Client Web Interface   │ ────────────────────────────>  │  FastAPI Backend Server │
-│      (index.html)       │  <───────────────────────────  │        (app.py)         │
-└─────────────────────────┘       Prediction JSON          └────────────┬────────────┘
-                                                                        │
-                                                                 Feature Vector
-                                                                        │
-                                                                        ▼
-                                                           ┌─────────────────────────┐
-                                                           │ Inference Engine (ML)   │
-                                                           │     (model.joblib)      │
-                                                           └─────────────────────────┘
 Client Presentation Layer (index.html): The front-end user interface is built using HTML5, CSS3, and JavaScript. It provides an intuitive control panel where security analysts or administrators can input network parameters, including Packet Size (in bytes), Request Rate (requests per second), and Failed Login Counts. The JavaScript client packages these inputs into a structured JSON payload and sends an asynchronous HTTP POST request to the backend. Upon receiving a response, the dashboard dynamically updates the display with color-coded risk indicators: Green for Safe traffic, Yellow for Suspicious activity, and Red for Critical Threats.
 
 Backend Orchestration Layer (app.py): The server is built on FastAPI, an asynchronous, high-performance Python framework. Upon receiving an incoming request at the /predict endpoint, FastAPI uses Pydantic schemas to strictly validate the data structure and data types. Once validated, the backend converts the numerical values into a structured NumPy feature vector array compatible with the machine learning model. FastAPI then handles the cross-origin resource sharing (CORS) middleware to ensure secure communication between the web frontend and the backend server.
@@ -71,3 +58,17 @@ Active Threat Mitigation Layer (20%): Integrating automated rate-limiting middle
 Database & Audit Logging Tier (20%): Implementing persistent data storage using SQLite or PostgreSQL to record all incoming telemetry, model prediction scores, and timestamped alert histories for long-term security auditing and compliance reporting.
 
 Interactive Analytics & Deployment Tier (20%): Embedding live dynamic charts using Chart.js on the web interface to display real-time attack frequency trends over time, and containerizing the entire application with Docker for seamless cloud deployment on platforms like AWS or Render.
+
+```text
+┌─────────────────────────┐       HTTP POST /predict       ┌─────────────────────────┐
+│  Client Web Interface   │ ────────────────────────────>  │  FastAPI Backend Server │
+│      (index.html)       │  <───────────────────────────  │        (app.py)         │
+└─────────────────────────┘       Prediction JSON          └────────────┬────────────┘
+                                                                        │
+                                                                 Feature Vector
+                                                                        │
+                                                                        ▼
+                                                           ┌─────────────────────────┐
+                                                           │ Inference Engine (ML)   │
+                                                           │     (model.joblib)      │
+                                                           └─────────────────────────┘

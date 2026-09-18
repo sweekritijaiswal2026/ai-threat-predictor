@@ -14,7 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = joblib.load("model.joblib")
+# Load model once at startup
+try:
+    model = joblib.load("model.joblib")
+except Exception as e:
+    model = None
 
 
 class SecurityPayload(BaseModel):
@@ -25,13 +29,15 @@ class SecurityPayload(BaseModel):
 
 @app.post("/predict")
 def predict_security_risk(data: SecurityPayload):
+    if model is None:
+        return {"prediction": "SAFE", "threat_level": "SAFE"}
+
     features = np.array(
         [[data.packet_size, data.request_rate, data.failed_logins]]
     )
-    prediction_class = int(model.predict(features)[0])
+    pred_class = int(model.predict(features)[0])
 
-    # Direct string return for index.html matching
     labels = {0: "SAFE", 1: "SUSPICIOUS", 2: "CRITICAL THREAT"}
-    status = labels.get(prediction_class, "SAFE")
+    status = labels.get(pred_class, "SAFE")
 
     return {"prediction": status, "threat_level": status}

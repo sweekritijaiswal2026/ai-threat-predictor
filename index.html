@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Cyber Threat Predictor</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
+        .card { background: #1e293b; padding: 24px; border-radius: 12px; max-width: 450px; margin: 0 auto; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;}
+        button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        #result { margin-top: 20px; padding: 12px; border-radius: 6px; text-align: center; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🛡️ Threat Level Predictor</h2>
+    <div class="form-group">
+        <label>Packet Size (Bytes):</label>
+        <input type="number" id="packet_size" value="64">
+    </div>
+    <div class="form-group">
+        <label>Requests Per Second:</label>
+        <input type="number" id="request_rate" value="300">
+    </div>
+    <div class="form-group">
+        <label>Failed Logins:</label>
+        <input type="number" id="failed_logins" value="20">
+    </div>
+    <button onclick="analyzeTraffic()">Analyze Threat Level</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+async function analyzeTraffic() {
+    const payload = {
+        packet_size: parseFloat(document.getElementById('packet_size').value),
+        request_rate: parseFloat(document.getElementById('request_rate').value),
+        failed_logins: parseFloat(document.getElementById('failed_logins').value)
+    };
+
+    const response = await fetch('http://127.0.0.1:8000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
+    resultDiv.innerText = `Threat Level: ${data.threat_level} (${data.confidence}% Confidence)`;
+
+    if (data.raw_class === 0) resultDiv.style.background = "#15803d";
+    else if (data.raw_class === 1) resultDiv.style.background = "#b45309";
+    else resultDiv.style.background = "#b91c1c";
+}
+</script>
+
+</body>
+</html>

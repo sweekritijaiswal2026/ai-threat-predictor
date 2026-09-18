@@ -28,7 +28,7 @@ Ensure you have Python 3.8+ and pip installed on your machine.
 
 1. Clone the Repository
 Bash
-git clone [https://github.com/YOUR_USERNAME/ai-threat-predictor.git](https://github.com/YOUR_USERNAME/ai-threat-predictor.git)
+git clone. (https://github.com/sweekritijaiswal2026/ai-threat-predictor).
 cd ai-threat-predictor
 2. Install Required Dependencies
 Install all required Python libraries using pip:

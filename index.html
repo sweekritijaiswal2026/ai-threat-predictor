@@ -2,62 +2,286 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Cyber Threat Predictor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cyber Threat Predictor | SOC Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
-        .card { background: #1e293b; padding: 24px; border-radius: 12px; max-width: 450px; margin: 0 auto; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-size: 14px; }
-        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;}
-        button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        #result { margin-top: 20px; padding: 12px; border-radius: 6px; text-align: center; font-weight: bold; display: none; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+            color: #f3f4f6;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-safe { box-shadow: 0 0 35px -5px rgba(34, 197, 94, 0.3); }
+        .glow-suspicious { box-shadow: 0 0 35px -5px rgba(234, 179, 8, 0.3); }
+        .glow-critical { box-shadow: 0 0 35px -5px rgba(239, 68, 68, 0.4); }
+        
+        /* Custom range slider styling */
+        input[type=range] {
+            accent-color: #3b82f6;
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen relative overflow-x-hidden flex flex-col justify-between">
 
-<div class="card">
-    <h2>🛡️ Threat Level Predictor</h2>
-    <div class="form-group">
-        <label>Packet Size (Bytes):</label>
-        <input type="number" id="packet_size" value="64">
-    </div>
-    <div class="form-group">
-        <label>Requests Per Second:</label>
-        <input type="number" id="request_rate" value="300">
-    </div>
-    <div class="form-group">
-        <label>Failed Logins:</label>
-        <input type="number" id="failed_logins" value="20">
-    </div>
-    <button onclick="analyzeTraffic()">Analyze Threat Level</button>
+    <!-- Top Navigation Header -->
+    <header class="border-b border-gray-800/80 glass-card sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-600/20 rounded-xl border border-blue-500/30 text-blue-400">
+                    <i class="fa-solid fa-shield-halved text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                        CORTEX AI // THREAT PREDICTOR
+                    </h1>
+                    <p class="text-xs text-gray-400 mono">STATUS: <span class="text-emerald-400 font-semibold">● ENGINE ACTIVE</span></p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="text-xs px-3 py-1.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 mono">
+                    API Endpoint: <span class="text-blue-400">http://127.0.0.1:8000</span>
+                </span>
+            </div>
+        </div>
+    </header>
 
-    <div id="result"></div>
-</div>
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto w-full px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 my-auto">
+        
+        <!-- Left Panel: Input Controls & Presets (7 cols) -->
+        <section class="lg:col-span-7 space-y-6">
+            
+            <!-- Quick Attack Scenario Presets -->
+            <div class="glass-card p-5 rounded-2xl">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 mono">
+                    <i class="fa-solid fa-bolt text-yellow-400 mr-1"></i> Quick Attack Vector Presets
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="setPreset(200, 2, 0)" class="p-3 bg-gray-800/50 hover:bg-emerald-950/40 border border-gray-700/50 hover:border-emerald-500/50 rounded-xl text-left transition-all group">
+                        <div class="text-xs text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">Safe Traffic</div>
+                        <div class="text-[10px] text-gray-400 mt-1">Normal User Browsing</div>
+                    </button>
+                    <button onclick="setPreset(1024, 150, 8)" class="p-3 bg-gray-800/50 hover:bg-yellow-950/40 border border-gray-700/50 hover:border-yellow-500/50 rounded-xl text-left transition-all group">
+                        <div class="text-xs text-yellow-400 font-bold group-hover:translate-x-0.5 transition-transform">Suspicious Probe</div>
+                        <div class="text-[10px] text-gray-400 mt-1">Brute-Force Probe</div>
+                    </button>
+                    <button onclick="setPreset(64, 500, 25)" class="p-3 bg-gray-800/50 hover:bg-rose-950/40 border border-gray-700/50 hover:border-rose-500/50 rounded-xl text-left transition-all group">
+                        <div class="text-xs text-rose-400 font-bold group-hover:translate-x-0.5 transition-transform">Critical DDoS</div>
+                        <div class="text-[10px] text-gray-400 mt-1">Botnet + Login Attack</div>
+                    </button>
+                </div>
+            </div>
 
-<script>
-async function analyzeTraffic() {
-    const payload = {
-        packet_size: parseFloat(document.getElementById('packet_size').value),
-        request_rate: parseFloat(document.getElementById('request_rate').value),
-        failed_logins: parseFloat(document.getElementById('failed_logins').value)
-    };
+            <!-- Input Controls Form -->
+            <div class="glass-card p-6 rounded-2xl space-y-6">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-blue-400"></i> Telemetry Parameters
+                </h2>
 
-    const response = await fetch('http://127.0.0.1:8000/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
+                <!-- Parameter 1: Packet Size -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <label for="packet_size" class="text-gray-300 font-medium">Packet Size (Bytes)</label>
+                        <span id="packet_val" class="mono text-blue-400 font-bold bg-blue-950/50 px-2 py-0.5 rounded border border-blue-800/50">200 B</span>
+                    </div>
+                    <input type="range" id="packet_size" min="32" max="2048" value="200" step="1" 
+                           oninput="updateValue('packet_val', this.value + ' B')" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
 
-    const data = await response.json();
-    const resultDiv = document.getElementById('result');
-    resultDiv.style.display = 'block';
-    resultDiv.innerText = `Threat Level: ${data.threat_level} (${data.confidence}% Confidence)`;
+                <!-- Parameter 2: Request Rate -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <label for="request_rate" class="text-gray-300 font-medium">Request Rate (req/sec)</label>
+                        <span id="rate_val" class="mono text-blue-400 font-bold bg-blue-950/50 px-2 py-0.5 rounded border border-blue-800/50">2 req/s</span>
+                    </div>
+                    <input type="range" id="request_rate" min="1" max="1000" value="2" step="1" 
+                           oninput="updateValue('rate_val', this.value + ' req/s')" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
 
-    if (data.raw_class === 0) resultDiv.style.background = "#15803d";
-    else if (data.raw_class === 1) resultDiv.style.background = "#b45309";
-    else resultDiv.style.background = "#b91c1c";
-}
-</script>
+                <!-- Parameter 3: Failed Logins -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <label for="failed_logins" class="text-gray-300 font-medium">Failed Login Attempts</label>
+                        <span id="logins_val" class="mono text-blue-400 font-bold bg-blue-950/50 px-2 py-0.5 rounded border border-blue-800/50">0 attempts</span>
+                    </div>
+                    <input type="range" id="failed_logins" min="0" max="50" value="0" step="1" 
+                           oninput="updateValue('logins_val', this.value + ' attempts')" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
 
+                <!-- Submit Button -->
+                <button onclick="analyzeThreat()" id="btn_analyze" class="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 text-base">
+                    <i class="fa-solid fa-microchip"></i> Execute ML Threat Assessment
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Panel: ML Prediction Output Dashboard (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col justify-between">
+            <div id="output_card" class="glass-card p-8 rounded-2xl h-full flex flex-col justify-between items-center text-center transition-all duration-300 relative overflow-hidden">
+                
+                <!-- Status Badge Top -->
+                <div class="w-full flex justify-between items-center border-b border-gray-800 pb-4">
+                    <span class="text-xs mono text-gray-400">ANALYSIS ENGINE</span>
+                    <span id="status_pill" class="text-xs mono px-3 py-1 rounded-full bg-gray-800 text-gray-400 border border-gray-700">STANDBY</span>
+                </div>
+
+                <!-- Dynamic Threat Visual Output -->
+                <div class="my-auto py-8 space-y-4">
+                    <div id="status_icon" class="w-24 h-24 mx-auto rounded-full bg-gray-800/80 border border-gray-700 flex items-center justify-center text-4xl text-gray-500 transition-all">
+                        <i class="fa-solid fa-radar"></i>
+                    </div>
+
+                    <div>
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mono">Predicted Status</div>
+                        <h2 id="threat_title" class="text-3xl font-extrabold tracking-tight text-gray-300 mt-1">Ready to Scan</h2>
+                    </div>
+
+                    <p id="threat_description" class="text-sm text-gray-400 max-w-xs mx-auto">
+                        Adjust telemetry parameters or click a scenario preset to run live inference.
+                    </p>
+                </div>
+
+                <!-- Dynamic Telemetry Log Box -->
+                <div class="w-full bg-black/40 border border-gray-800 rounded-xl p-4 text-left mono text-xs space-y-1">
+                    <div class="text-gray-500 border-b border-gray-800/80 pb-1 mb-2 flex justify-between">
+                        <span>INFERENCE LOG</span>
+                        <span id="latency_tag">0 ms</span>
+                    </div>
+                    <div class="text-gray-400">Input Vector: <span id="log_vector" class="text-blue-400">[200, 2, 0]</span></div>
+                    <div class="text-gray-400">API Status: <span id="log_status" class="text-gray-500">Awaiting Trigger</span></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Footer -->
+    <footer class="border-t border-gray-800/80 glass-card py-4 px-6 text-center text-xs text-gray-500 mono">
+        Random Forest Model v1.0 • Built with FastAPI & Scikit-Learn
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        function updateValue(id, val) {
+            document.getElementById(id).innerText = val;
+        }
+
+        function setPreset(packet, rate, logins) {
+            document.getElementById('packet_size').value = packet;
+            document.getElementById('request_rate').value = rate;
+            document.getElementById('failed_logins').value = logins;
+
+            updateValue('packet_val', packet + ' B');
+            updateValue('rate_val', rate + ' req/s');
+            updateValue('logins_val', logins + ' attempts');
+
+            analyzeThreat();
+        }
+
+        async function analyzeThreat() {
+            const packetSize = parseFloat(document.getElementById('packet_size').value);
+            const requestRate = parseFloat(document.getElementById('request_rate').value);
+            const failedLogins = parseFloat(document.getElementById('failed_logins').value);
+
+            const card = document.getElementById('output_card');
+            const icon = document.getElementById('status_icon');
+            const title = document.getElementById('threat_title');
+            const desc = document.getElementById('threat_description');
+            const pill = document.getElementById('status_pill');
+            const logVector = document.getElementById('log_vector');
+            const logStatus = document.getElementById('log_status');
+            const latencyTag = document.getElementById('latency_tag');
+
+            logVector.innerText = `[${packetSize}, ${requestRate}, ${failedLogins}]`;
+            logStatus.innerText = "Processing...";
+            logStatus.className = "text-yellow-400 animate-pulse";
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        packet_size: packetSize,
+                        request_rate: requestRate,
+                        failed_logins: failedLogins
+                    })
+                });
+
+                const endTime = performance.now();
+                latencyTag.innerText = `${Math.round(endTime - startTime)} ms`;
+
+                if (!response.ok) throw new Error("API Server Error");
+
+                const data = await response.json();
+                
+                // Class 0: SAFE | Class 1: SUSPICIOUS | Class 2: CRITICAL THREAT
+                const resultText = data.prediction || data.threat_level || "SAFE";
+
+                // Reset classes
+                card.className = "glass-card p-8 rounded-2xl h-full flex flex-col justify-between items-center text-center transition-all duration-300 relative overflow-hidden";
+                
+                if (resultText.includes("SAFE") || resultText === 0) {
+                    card.classList.add('glow-safe', 'border-emerald-500/30');
+                    icon.className = "w-24 h-24 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/50 flex items-center justify-center text-4xl text-emerald-400 shadow-lg shadow-emerald-500/20";
+                    icon.innerHTML = '<i class="fa-solid fa-shield-check"></i>';
+                    title.innerText = "SAFE TRAFFIC";
+                    title.className = "text-3xl font-extrabold tracking-tight text-emerald-400 mt-1";
+                    desc.innerText = "Traffic parameters align with normal user interaction patterns. No action required.";
+                    pill.innerText = "LEVEL 0: SAFE";
+                    pill.className = "text-xs mono px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+                    logStatus.innerText = "200 OK (Clean)";
+                    logStatus.className = "text-emerald-400";
+                } 
+                else if (resultText.includes("SUSPICIOUS") || resultText === 1) {
+                    card.classList.add('glow-suspicious', 'border-yellow-500/30');
+                    icon.className = "w-24 h-24 mx-auto rounded-full bg-yellow-500/10 border border-yellow-500/50 flex items-center justify-center text-4xl text-yellow-400 shadow-lg shadow-yellow-500/20";
+                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                    title.innerText = "SUSPICIOUS ACTIVITY";
+                    title.className = "text-3xl font-extrabold tracking-tight text-yellow-400 mt-1";
+                    desc.innerText = "Anomalous telemetry detected. Traffic displays elevated rate probes or authorization failures.";
+                    pill.innerText = "LEVEL 1: WARNING";
+                    pill.className = "text-xs mono px-3 py-1 rounded-full bg-yellow-950 text-yellow-400 border border-yellow-800";
+                    logStatus.innerText = "200 OK (Warning)";
+                    logStatus.className = "text-yellow-400";
+                } 
+                else {
+                    card.classList.add('glow-critical', 'border-rose-500/30');
+                    icon.className = "w-24 h-24 mx-auto rounded-full bg-rose-500/10 border border-rose-500/50 flex items-center justify-center text-4xl text-rose-400 shadow-lg shadow-rose-500/20 animate-pulse";
+                    icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
+                    title.innerText = "CRITICAL THREAT";
+                    title.className = "text-3xl font-extrabold tracking-tight text-rose-500 mt-1";
+                    desc.innerText = "High-severity cyber threat detected! Attack vectors indicate active botnet DDoS or brute-force exploit.";
+                    pill.innerText = "LEVEL 2: ALERT";
+                    pill.className = "text-xs mono px-3 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800";
+                    logStatus.innerText = "200 OK (Threat Blocked)";
+                    logStatus.className = "text-rose-400";
+                }
+
+            } catch (err) {
+                logStatus.innerText = "Connection Failed";
+                logStatus.className = "text-rose-500 font-bold";
+                title.innerText = "Server Error";
+                desc.innerText = "Ensure your FastAPI backend is running on http://127.0.0.1:8000";
+            }
+        }
+    </script>
 </body>
 </html>
